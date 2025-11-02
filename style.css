@@ -1,0 +1,166 @@
+/*
+ * CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/legalcode>
+ * Dark color scheme using 216 web-safe colors, inspired
+ * somewhat by the default color scheme in mutt.
+ * It reduces eyestrain for me, and energy usage for all:
+ * https://en.wikipedia.org/wiki/Light-on-dark_color_scheme
+ */
+
+/* source: https://lore.kernel.org/+/216dark.css?67c1dabc */
+* {
+  font-size: 100%;
+  font-family: monospace;
+  background: #000;
+  color: #ccc;
+}
+
+@font-face {
+  font-family: "Big Blue Terminal 437 Nerd Font";
+  font-display: swap;
+  src: url("../assets/fonts/BigBlueTerm437NerdFont-Regular.ttf")
+    format("truetype");
+}
+
+pre {
+  white-space: pre-wrap;
+}
+
+/*
+ * Underlined links add visual noise which make them hard-to-read.
+ * Use colors to make them stand out, instead.
+ */
+a:link {
+  color: #69f;
+  text-decoration: none;
+}
+a:visited {
+  color: #96f;
+}
+
+/* quoted text in emails gets a different color */
+*.q {
+  color: #09f;
+}
+
+/*
+ * these may be used with cgit <https://git.zx2c4.com/cgit/>, too.
+ * (cgit uses <div>, public-inbox uses <span>)
+ */
+*.add {
+  color: #0ff;
+} /* diff post-image lines */
+*.del {
+  color: #f0f;
+} /* diff pre-image lines */
+*.head {
+  color: #fff;
+} /* diff header (metainformation) */
+*.hunk {
+  color: #c93;
+} /* diff hunk-header */
+
+/*
+ * highlight 3.x colors (tested 3.18) for displaying blobs.
+ * This doesn't use most of the colors available, as I find too
+ * many colors overwhelming, so the default is commented out.
+ */
+.hl.num {
+  color: #f30;
+} /* number */
+.hl.esc {
+  color: #f0f;
+} /* escape character */
+.hl.str {
+  color: #f30;
+} /* string */
+.hl.ppc {
+  color: #f0f;
+} /* preprocessor */
+.hl.pps {
+  color: #f30;
+} /* preprocessor string */
+.hl.slc {
+  color: #09f;
+} /* single-line comment */
+.hl.com {
+  color: #09f;
+} /* multi-line comment */
+/* .hl.opt { color:#ccc } */ /* operator */
+/* .hl.ipl { color:#ccc } */ /* interpolation */
+
+/* keyword groups kw[a-z] */
+.hl.kwa {
+  color: #ff0;
+}
+.hl.kwb {
+  color: #0f0;
+}
+.hl.kwc {
+  color: #ff0;
+}
+/* .hl.kwd { color:#ccc } */
+
+/* line-number (unused by public-inbox) */
+/* .hl.lin { color:#ccc } */
+
+/* highlight.js dark theme override */
+.hljs {
+  display: block !important;
+  overflow-x: auto !important;
+  padding: 1em !important;
+  background: #000 !important;
+  color: #ccc !important; /* base text */
+  border-radius: 0.5rem !important;
+  font-family: "Big Blue Terminal 437 Nerd Font", monospace !important;
+  font-size: 1.5cap;
+}
+
+/* keywords */
+.hljs-keyword,
+.hljs-selector-tag {
+  color: #09f !important;
+  font-weight: bold !important;
+  font-size: 1cap;
+  font-family: "Big Blue Terminal 437 Nerd Font";
+}
+
+/* builtins / types */
+.hljs-type,
+.hljs-title,
+.hljs-section {
+  color: #0ff !important;
+  font-family: "Big Blue Terminal 437 Nerd Font";
+  font-size: 1cap;
+}
+
+/* strings */
+.hljs-string,
+.hljs-literal {
+  color: #f30 !important;
+  font-family: "Big Blue Terminal 437 Nerd Font";
+  font-size: 1cap;
+}
+
+/* comments */
+.hljs-comment,
+.hljs-quote {
+  color: #0f0 !important;
+  font-style: italic !important;
+  font-family: "Big Blue Terminal 437 Nerd Font";
+  font-size: 1cap;
+}
+
+/* preprocessor, escapes */
+.hljs-meta,
+.hljs-symbol {
+  color: #f0f !important;
+  font-family: "Big Blue Terminal 437 Nerd Font";
+  font-size: 1cap;
+}
+
+@font-face {
+  font-family: "Big Blue Terminal 437 Nerd Font";
+  font-display: swap;
+  src: url("./assets/fonts/BigBlueTerm437NerdFont-Regular.ttf")
+    format("truetype");
+}

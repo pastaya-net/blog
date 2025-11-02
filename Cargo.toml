@@ -1,0 +1,11 @@
+[package]
+name = "blog"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+notify = "8.2.0"
+pulldown-cmark = { version = "0.13.0", default-features = false, features = [
+  "simd",
+  "html",
+] }

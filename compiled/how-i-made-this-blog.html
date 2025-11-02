@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>how-i-made-this-blog</title>
+
+    <link rel="stylesheet" href="/blog/style.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/default.min.css">
+
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js"></script>
+
+    <script>hljs.highlightAll();</script>
+    <!-- highlight.js provides syntax highlighting -->
+</head>
+<body>
+    <h1>How I made this blog</h1>
+<p>I had this idea for a nice simple markdown based blog that WASN’T</p>
+<ol>
+<li>too complex</li>
+<li><del>bad</del> code (well if you ask anyone good at rust it would be bad)</li>
+<li>CLIENT SIDE MARKDOWN (bad SEO which is literally what I NEED right now)</li>
+</ol>
+<p>So I searched through existing solutions and they ALL were either</p>
+<ol>
+<li>not so simple</li>
+<li>way too complex to setup</li>
+<li>kinda BLOATED</li>
+</ol>
+<p>I gave up and just realized I could make my own. And I’ll do it in Rust (cuz that’s the only language I know lol)<br />
+using a “few” dependencies I cooked up this short program (also syntax highlighting test)</p>
+<pre><code class="language-rust">/*
+ * main.rs - a program that compiles markdown in ../markdown/ into html stored under ../compiled/
+ * Copyright (C) 2025 pastaya
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
+ */
+
+use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Result, Watcher};
+use pulldown_cmark::{Options, Parser, html};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+#[derive(Clone)]
+struct CompilerConfig {
+    input_dir: PathBuf,
+    output_dir: PathBuf,
+}
+
+// options for pulldown_cmark
+const OPTIONS: Options = Options::ENABLE_STRIKETHROUGH
+    .union(Options::ENABLE_FOOTNOTES)
+    .union(Options::ENABLE_SMART_PUNCTUATION);
+
+impl CompilerConfig {
+    fn new(input: &amp;str, output: &amp;str) -&gt; Self {
+        Self {
+            input_dir: PathBuf::from(input),
+            output_dir: PathBuf::from(output),
+        }
+    }
+}
+
+// seems obvious from the name right?
+fn compile_md_to_html(path: &amp;Path, config: &amp;CompilerConfig) -&gt; Result&lt;()&gt; {
+    if path.extension().map(|e| e == "md").unwrap_or(false) {
+        let content = fs::read_to_string(path)?;
+        let parser = Parser::new_ext(&amp;content, OPTIONS);
+        let mut body = String::new();
+
+        html::push_html(&amp;mut body, parser);
+
+        // this basically injects extra html, right now its just includes the css file and syntax
+        // highlighting
+
+        let full_html = format!(
+            r#"&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;{title}&lt;/title&gt;
+    &lt;link rel="stylesheet" href="/blog/style.css"&gt;
+    &lt;script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;hljs.highlightAll();&lt;/script&gt;
+    &lt;!-- highlight.js provides syntax highlighting --&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    {body}
+&lt;/body&gt;
+&lt;/html&gt;"#,
+            title = path.file_stem().unwrap().to_string_lossy(),
+            body = body
+        );
+
+        let mut output_path = config.output_dir.join(path.file_stem().unwrap());
+        output_path.set_extension("html");
+
+        fs::write(&amp;output_path, full_html)?;
+        println!("Compiled {:?} → {:?}", path, output_path);
+    }
+    Ok(())
+}
+
+fn main() -&gt; Result&lt;()&gt; {
+    let config = CompilerConfig::new("./markdown", "./compiled");
+
+    fs::create_dir_all(&amp;config.output_dir)?;
+
+    let mut watcher = RecommendedWatcher::new(
+        {
+            let config = config.clone(); // probably unidiomatic but it works
+            move |res: Result&lt;Event&gt;| match res {
+                Ok(event) =&gt; {
+                    if matches!(event.kind, EventKind::Create(_) | EventKind::Modify(_)) {
+                        for path in event.paths {
+                            let _ = compile_md_to_html(&amp;path, &amp;config); // SO MUCH BOILERPLATE
+                        }
+                    }
+                }
+                Err(e) =&gt; eprintln!("watch go ka BOOM!: {:?}", e),
+            }
+        },
+        Config::default(),
+    )?;
+
+    watcher.watch(&amp;config.input_dir, RecursiveMode::Recursive)?;
+    println!(
+        "i am seeing {:?} for .md files... very nsa like",
+        config.input_dir
+    );
+
+    loop {} // idk how to keep apps alive lol
+}
+</code></pre>
+<p>basically all it does is just</p>
+<ol>
+<li>watches the markdown/ folder</li>
+<li>if there are any changes in the markdown folder (new file, modifed, etc) then</li>
+<li>compiles markdown into html (and adds extra boilerplate for stuff like css, title (and in the future embed support))</li>
+</ol>
+<p>it took alot of time actually</p>
+<h2>The Problems I encountered</h2>
+<p>At first I used the <code>markdown</code> crate from crates.io because it was the most simple one (it was but at a cost)<br />
+I could’ve just left it at there BUT I wanted syntax highlighting.<br />
+“why can’t you use syntax highlighting and the markdown crate??”<br />
+the markdown crate produces THIS in a code block</p>
+<blockquote>
+<p><code>&lt;p&gt;example example&lt;code&gt;print("hello")&lt;/code&gt;</code></p>
+</blockquote>
+<p>HOWEVER
+highlight.js wants THIS</p>
+<blockquote>
+<p><code>&lt;pre&gt;&lt;code&gt;print("hello")&lt;/code&gt;&lt;/pre&gt;</code></p>
+</blockquote>
+<p>tried my best to explain it but<br />
+markdown can ONLY make inline code unlike pulldown_cmark which produces the output highlight.js needs<br />
+anyways that uh ends my opening blog post</p>
+<p>cya!</p>
+<p>– pastaya.</p>
+
+</body>
+</html>
